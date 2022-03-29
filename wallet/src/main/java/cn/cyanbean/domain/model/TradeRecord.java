@@ -9,6 +9,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -53,6 +54,28 @@ public class TradeRecord extends BaseEntity {
 
     // 原交易号
     private String sourceNumber;
+
+    public TradeRecord recharge(Wallet wallet){
+        wallet.incrementBalance(this.getTradeAmount());
+        this.setTradeNumber(UUID.randomUUID().toString());
+        this.setTradeType(TradeRecord.TradeType.RECHARGE);
+        this.setTradeFlag(TradeRecord.TradeFlag.IN);
+        this.setTradeStatus(TradeRecord.TradeStatus.SUCCEED);
+        this.setWallet(wallet);
+        this.setBalance(wallet.getBalance());
+        return this;
+    }
+
+    public TradeRecord consume(Wallet wallet){
+        wallet.decrementBalance(this.getTradeAmount());
+        this.setTradeNumber(UUID.randomUUID().toString());
+        this.setTradeFlag(TradeRecord.TradeFlag.OUT);
+        this.setTradeType(TradeRecord.TradeType.CONSUME);
+        this.setTradeStatus(TradeRecord.TradeStatus.SUCCEED);
+        this.setWallet(wallet);
+        this.setBalance(wallet.getBalance());
+        return this;
+    }
 
     @DomainEvents
     public List<Object> domainEvents(){
